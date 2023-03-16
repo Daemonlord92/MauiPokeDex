@@ -1,0 +1,89 @@
+﻿@page "/pokemon"
+
+@using PokedexClient.Data
+@inject PokemonService pokemonService
+
+<h3>Pokemon</h3>
+
+<div class="m-5 d-flex justify-content-center align-content-center text-center">
+    @if (pokemon != null)
+    {
+        <div class="card col-6 d-flex m-auto">
+            <h1 class="card-title">@pokemon.Name</h1>
+            <img src="@pokemon.ImgUrl" class="card-img card-img-top m-auto" style="max-width: 100px; max-height: 100px;"/>
+            <p class="card-text">Height: @pokemon.Height m</p>
+            <p class ="card-text">Weight: @pokemon.Weight kg</p>
+        </div>
+    }
+</div>
+<div class="d-flex col-10 form-group justify-content-around align-content-center m-5">
+    <button class="btn btn-danger" @onclick="GetPerviousPokemon" disabled="@(DisablePrevButton())">Previous Entry</button>
+    <button class="btn btn-primary" @onclick="(async () => {SetPokedexIndex(1); await SetPokemon(1);})">First Pokemon</button>
+    <button class="btn btn-primary" @onclick="(async () => {SetPokedexIndex(151); await SetPokemon(151);})">Last 1st Gen Pokemon</button>
+    <button class="btn btn-danger" @onclick="GetNextPokemon" disabled="@(DisableNextButton())">Next Entry</button>
+</div>
+
+@code {
+    private PokedexClient.Data.Pokemon pokemon;
+    private int pokedexIndex = 1;
+
+    public Pokemon()
+    {
+        this.pokemonService = new PokemonService();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        pokemon = await this.pokemonService.GetRandomPokemon(pokedexIndex);
+        pokemon.Name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+        pokemon.ImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + 1 + ".png";
+    }
+
+    private void SetPokedexIndex(int pokedexIndex)
+    {
+        this.pokedexIndex = pokedexIndex;
+    }
+
+    private bool DisableNextButton()
+    {
+        if(pokedexIndex == 151)
+            return true;
+        return false;
+    }
+
+    private bool DisablePrevButton()
+    {
+        if (pokedexIndex == 1)
+            return true;
+        return false;
+    }
+
+    private async Task SetPokemon(int pokedexIndex)
+    {
+        pokemon = await this.pokemonService.GetRandomPokemon(pokedexIndex);
+        pokemon.Name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+        pokemon.ImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + pokedexIndex + ".png";
+    }
+
+    private async Task GetNextPokemon()
+    {
+        if(pokedexIndex < 152)
+        {
+            pokedexIndex++;
+            pokemon = await this.pokemonService.GetRandomPokemon(pokedexIndex);
+            pokemon.Name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+            pokemon.ImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + pokedexIndex + ".png";
+        }
+    }
+
+    private async Task GetPerviousPokemon()
+    {
+        if(pokedexIndex > 0)
+        {
+            pokedexIndex--;
+            pokemon = await this.pokemonService.GetRandomPokemon(pokedexIndex);
+            pokemon.Name = char.ToUpper(pokemon.Name[0]) + pokemon.Name.Substring(1);
+            pokemon.ImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + pokedexIndex + ".png";
+        }
+    }
+}

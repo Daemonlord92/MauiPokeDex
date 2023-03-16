@@ -1,0 +1,83 @@
+﻿@page "/berry-index"
+
+@using PokedexClient.Data
+@inject PokemonService pokeService
+
+<h3>Berry Index</h3>
+<div>
+    @if(this.berry != null)
+    {
+        <div class="mt-5 mx-auto text-center">
+            <label>Berry Name</label>
+            <h3>@berry.Name</h3>
+            <label>Size</label>
+            <p>@berry.Size</p>
+            <label>Grow Time</label>
+            <p>@berry.GrowthTime</p>
+        </div>
+    }
+</div>
+<div class="d-flex col-10 form-group justify-content-around align-content-center m-5">
+    <button class="btn btn-danger" @onclick="GetPerviousBerry" disabled="@(DisabledPrevButton())">
+        Previous Entry
+    </button>
+    <button class="btn btn-primary" @onclick="(async () => {await SetBerry(1);})">First Berry</button>
+    <button class="btn btn-primary" @onclick="(async () => {await SetBerry(64);})">Last Berry</button>
+    <button class="btn btn-danger" @onclick="GetNextBerry" disabled="@(DisabledNextButton())">Next Entry</button>
+</div>
+
+@code {
+    private Berry berry;
+    private int berryIndex = 1;
+
+    public BerryIndex()
+    {
+        this.pokeService = new PokemonService();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.berry = await this.pokeService.GetBerry(berryIndex);
+        this.berry.Name = char.ToUpper(this.berry.Name[0]) + this.berry.Name.Substring(1);
+    }
+
+    private bool DisabledPrevButton()
+    {
+        if (berryIndex == 1)
+            return true;
+        return false;
+    }
+
+    private bool DisabledNextButton()
+    {
+        if (berryIndex == 64)
+            return true;
+        return false;
+    }
+
+    private async Task SetBerry(int berryIndex)
+    {
+        this.berry = await this.pokeService.GetBerry(berryIndex);
+        this.berry.Name = char.ToUpper(this.berry.Name[0]) + this.berry.Name.Substring(1);
+    }
+
+    private async Task GetNextBerry()
+    {
+        if (berryIndex < 65)
+        {
+            this.berryIndex++;
+            this.berry = await this.pokeService.GetBerry(berryIndex);
+            this.berry.Name = char.ToUpper(this.berry.Name[0]) + this.berry.Name.Substring(1);
+        }
+    }
+
+    private async Task GetPerviousBerry()
+    {
+        if (berryIndex > 0)
+        {
+            this.berryIndex--;
+            this.berry = await this.pokeService.GetBerry(berryIndex);
+            this.berry.Name = char.ToUpper(this.berry.Name[0]) + this.berry.Name.Substring(1);
+        }
+    }
+}
